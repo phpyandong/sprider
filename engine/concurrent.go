@@ -5,7 +5,7 @@ import (
 )
 
 type ConcurrentEngine struct {
-	Scheduler Scheduler
+	Scheduler BaseScheduler
 	WorkerCount int
 }
 
@@ -43,7 +43,7 @@ func (e *ConcurrentEngine) Run(seeds ...Request){
 	}
 }
 //func createWorker(in chan Request,out chan ParseResult)  {
-func createWorker(out chan ParseResult,s Scheduler)  {
+func createWorker(out chan ParseResult,s BaseScheduler)  {
 	in :=make(chan Request)
 	//go func() {
 		for {

@@ -1,6 +1,6 @@
 package engine
 
-type Scheduler interface {
+type BaseScheduler interface {
 	Submit(Request)
 	ConfigureMasterWorkerChan(chan Request)
 	WorkerReady(chan Request)

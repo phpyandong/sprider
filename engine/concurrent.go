@@ -14,11 +14,11 @@ func (e *ConcurrentEngine) Run(seeds ...Request){
 	//for _, r := range seeds{
 	//	e.Scheduler.Submit(r)
 	//}
-	in := make(chan  Request)
+	//in := make(chan  Request)
 	out := make(chan ParseResult)
-	//e.Scheduler.Run()
+	e.Scheduler.Run()
 
-	e.Scheduler.ConfigureMasterWorkerChan(in)
+	//e.Scheduler.ConfigureMasterWorkerChan(in)
 
 	for i := 0 ;i < e.WorkerCount ;i++ {
 		//go createWorker(in ,out)

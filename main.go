@@ -1,16 +1,16 @@
 package main
 
 import (
-"bufio"
-"fmt"
-"golang.org/x/net/html/charset"
-"golang.org/x/text/encoding"
-"golang.org/x/text/transform"
-"io"
-"io/ioutil"
-"net/http"
-"regexp"
-"sprider/zhenai/parser"
+	"bufio"
+	"fmt"
+	"golang.org/x/net/html/charset"
+	"golang.org/x/text/encoding"
+	"golang.org/x/text/transform"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"regexp"
+	"sprider/zhenai/parser"
 	"sprider/engine"
 	"sprider/scheduler"
 )
@@ -21,9 +21,7 @@ func main(){
 	//foo.Ask()
 	//fmt.Printf("hah %s","我是")
 	e := engine.ConcurrentEngine{
-		Scheduler:&scheduler.SimpleScheduler{},
-		//Scheduler:&scheduler.QueuedScheduler{},
-		//Scheduler:&scheduler.QueuedScheduler{},
+		Scheduler:&scheduler.QueuedScheduler{},
 		WorkerCount:3,
 	}
 	e.Run(engine.Request{

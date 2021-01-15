@@ -12,7 +12,6 @@ import (
 	"regexp"
 	"sprider/zhenai/parser"
 	"sprider/engine"
-	"sprider/scheduler"
 )
 
 
@@ -20,11 +19,15 @@ import (
 func main(){
 	//foo.Ask()
 	//fmt.Printf("hah %s","我是")
-	e := engine.ConcurrentEngine{
-		Scheduler:&scheduler.QueuedScheduler{},
-		WorkerCount:3,
-	}
-	e.Run(engine.Request{
+	//e := engine.ConcurrentEngine{
+	//	Scheduler:&scheduler.QueuedScheduler{},
+	//	WorkerCount:3,
+	//}
+	//e.Run(engine.Request{
+	//	Url:"http://www.zhenai.com/zhenghun",
+	//	ParserFunc:parser.ParseCityList,
+	//})
+	engine.SimpleEngine{}.Run(engine.Request{
 		Url:"http://www.zhenai.com/zhenghun",
 		ParserFunc:parser.ParseCityList,
 	})

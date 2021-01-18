@@ -1,21 +1,24 @@
 package parser
 
 import (
-	"sprider/engine"
 	"regexp"
 	"strconv"
 	"sprider/model"
 	"fmt"
+	"sprider/core"
 	"strings"
 )
 var ageRegexp = regexp.MustCompile(`<td width="180"><span class="grayL">年龄：</span>([\d]+)</td>`)
 var marrRegexp = regexp.MustCompile( `<td width="180"><span class="grayL">婚况：</span>([^<])</td>`)
 var AllInfoRegexp = regexp.MustCompile(`des f-cl"([^>]+)>([^>]+)</div>`)
-func ParseProfile(contents []byte,name string) engine.ParseResult {
+var idUrl  = regexp.MustCompile(
+	`http://album.zhenai.com/u/([\d]+)`,
+)
+func ParseProfile(contents []byte,url string,name string) core.ParseResult {
 	profile := model.Profile{}
-	//str := `<div class="des f-cl" data-v-4f6f1ada>阿坝 | 56岁 | 大专 | 离异 | 168cm | 5001-8000元</div>`
-	//strnew := []byte(str)
-	//fmt.Println(strnew)
+	str := `<div class="des f-cl" data-v-4f6f1ada>阿坝 | 56岁 | 大专 | 离异 | 168cm | 5001-8000元</div>`
+	strnew := []byte(str)
+	fmt.Println(strnew)
 	allInfoStr :=  extractString(contents,AllInfoRegexp)
 
 	allInfo := strings.Split(allInfoStr, "|")
@@ -40,13 +43,23 @@ func ParseProfile(contents []byte,name string) engine.ParseResult {
 	}
 	profile.Height = heightInt
 	profile.Occupation = strings.Trim(allInfo[5]," ")
-	result := engine.ParseResult{
-		Items:[]interface{}{profile},
+
+	result := core.ParseResult{
+		//Items:[]interface{}{profile},
+		Items:[]core.Item{
+			{
+				Url: url,
+				Type :"zhenai",
+				Id :extractStringUrl([]byte(url),idUrl),
+				Payload:profile,
+			},
+
+		},
 	}
 	return result
 }
 
-func ParseProfile2(contents []byte,name string) engine.ParseResult{
+func ParseProfile2(contents []byte,name string) core.ParseResult{
 	//re := regexp.MustCompile(ageRe)
 	profile := model.Profile{}
 	//用户名
@@ -69,18 +82,39 @@ func ParseProfile2(contents []byte,name string) engine.ParseResult{
 	//
 	//}
 	//profile.Name
-	result := engine.ParseResult{
-		Items:[]interface{}{profile},
+	result := core.ParseResult{
+		Items:[]core.Item{
+			{
+				Url: "",
+				Type :"zhenai",
+				Id :"",
+				Payload:profile,
+			},
+
+		},
 	}
 	return result
 }
+func extractStringUrl(contents []byte,re *regexp.Regexp ) string{
+	match := re.FindSubmatch(contents)
+	//fmt.Println(len(match),"match")
+	//fmt.Println(string(match[0]),"match0")
+	//fmt.Println(string(match[1]),"match1")
+	//fmt.Println(string(match[2]),"match2")
+
+	if len(match) >= 1 {
+		return string(match[1])
+	}
+	return ""
+}
 func extractString(contents []byte,re *regexp.Regexp ) string{
 	match := re.FindSubmatch(contents)
-	if len(match) >= 2 {
-		//fmt.Println(string(match[0]))
-		//fmt.Println(string(match[1]))
-		//fmt.Println(string(match[2]))
+	//fmt.Println(len(match),"match")
+	//fmt.Println(string(match[0]),"match0")
+	//fmt.Println(string(match[1]),"match1")
+	//fmt.Println(string(match[2]),"match2")
 
+	if len(match) >= 2 {
 		return string(match[2])
 	}
 	return ""

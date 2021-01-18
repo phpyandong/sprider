@@ -1,8 +1,8 @@
 package parser
 
 import (
-	"sprider/engine"
 	"regexp"
+	"sprider/core"
 )
 //在城市详情页，获取用户列表，获取所有用户的个人主页列表
 //const cityRe = `<a href="http://album.zhenai.com/u/([\d]+)" target="_blank">([^<]+)</a>`
@@ -20,7 +20,7 @@ const cityRe = `<a href="(http://album.zhenai.com/u/([\d]+))"([^>]+)>([^<]+)</a>
 //	//
 //	return engine.NilParser(contents)
 //}
-func ParseCity(contents []byte) engine.ParseResult{
+func ParseCity(contents []byte) core.ParseResult{
 	//titles := regexp.MustCompile(`<title>([^<]+)</title>`)
 	//mat := titles.FindAllSubmatch(contents,-1)
 	//for _,v :=  range mat {
@@ -33,22 +33,37 @@ func ParseCity(contents []byte) engine.ParseResult{
 	//newstrBytes := []byte(newstr)
 	matches := re.FindAllSubmatch(contents,-1)
 	//fmt.Println(string(contents),"matches")
-	result := engine.ParseResult{}
+	result := core.ParseResult{}
 	limit :=100
 	for _ ,m := range matches{
+		url := string(m[1])
 		if limit <= 0{
 			break
 		}
 		name := string(m[4])
 
-		result.Items = append(
-			result.Items,"City Detail User " + name )
+		//result.Items = append(
+		//	result.Items,
+		//	"City Detail User " + name
+		//	)
 		result.Request = append(
 			result.Request,
-			engine.Request{
-				Url: string(m[1]),
-				ParserFunc: func(c []byte) engine.ParseResult{
-					return ParseProfile(c,name)
+			core.Request{
+				Url:url,
+				ParserFunc: func(
+					bytes []byte) core.ParseResult {
+					return ParseProfile(bytes,url,name)
+				},
+			},
+
+		)
+
+		result.Request = append(
+			result.Request,
+			core.Request{
+				Url:url,
+				ParserFunc: func(c []byte) core.ParseResult{
+					return ParseProfile(c,url,name)
 				},
 			},
 		)

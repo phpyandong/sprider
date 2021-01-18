@@ -10,15 +10,33 @@ import (
 	"io/ioutil"
 	"net/http"
 	"regexp"
+	"sprider/core"
 	"sprider/zhenai/parser"
-	"sprider/engine"
+	"sprider/sched"
+	"sprider/store"
 )
 
 
 
 func main(){
-	//foo.Ask()
-	//fmt.Printf("hah %s","我是")
+	//2
+	//e:= core.CoreEngine{
+	//	Sched:&sched.Simplescheduler{},
+	//
+	//}
+	//e.Run(core.Request{
+	//	Url:"http://www.zhenai.com/zhenghun",
+	//	ParserFunc:parser.ParseCityList,
+	//})
+	//e := engine.SeiyaEngine{
+	//	Scheduler:&scheduler.SeiyaScheduler{},
+	//	WorkerCount:3,
+	//}
+	//e.Run(engine.Request{
+	//	Url:"http://www.zhenai.com/zhenghun",
+	//	ParserFunc:parser.ParseCityList,
+	//})
+	//3
 	//e := engine.ConcurrentEngine{
 	//	Scheduler:&scheduler.QueuedScheduler{},
 	//	WorkerCount:3,
@@ -27,10 +45,22 @@ func main(){
 	//	Url:"http://www.zhenai.com/zhenghun",
 	//	ParserFunc:parser.ParseCityList,
 	//})
-	engine.SimpleEngine{}.Run(engine.Request{
-		Url:"http://www.zhenai.com/zhenghun",
-		ParserFunc:parser.ParseCityList,
-	})
+	e := core.CoreCurrEngine{
+		Sched:&sched.CurrSched{},
+		ItemChan:store.ItemStore(),
+	}
+	e.Run(
+		core.Request{
+				Url:"http://www.zhenai.com/zhenghun",
+				ParserFunc:parser.ParseCityList,
+		},
+	)
+	//
+	//// 1
+	//engine.SimpleEngine{}.Run(engine.Request{
+	//	Url:"http://www.zhenai.com/zhenghun",
+	//	ParserFunc:parser.ParseCityList,
+	//})
 }
 
 func main2() {

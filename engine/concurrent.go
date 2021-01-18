@@ -59,3 +59,17 @@ func createWorker(out chan ParseResult,s BaseScheduler)  {
 	//}()
 }
 
+
+func createSeiyaWorker(in chan Request,out chan ParseResult)  {
+//func createSeiyaWorkeraWorker(out chan ParseResult,s BaseScheduler)  {
+	//go func() {
+	for {
+		request := <- in //不断从in里收数据
+		result ,err := Worker(request)
+		if err != nil {
+			continue
+		}
+		out <-result
+	}
+	//}()
+}

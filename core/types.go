@@ -1,8 +1,11 @@
 package core
 
+type ParseFunc func(
+	content []byte,
+) ParseResult
 type Request struct{
 	Url string
-	ParserFunc func([]byte) ParseResult
+	ParserFunc ParseFunc
 }
 type ParseResult struct {
 	Request [] Request

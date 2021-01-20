@@ -44,6 +44,18 @@ func ParseProfile(contents []byte,url string,name string) core.ParseResult {
 	profile.Height = heightInt
 	profile.Occupation = strings.Trim(allInfo[5]," ")
 
+	//result := core.ParseResult{
+	//	//Items:[]interface{}{profile},
+	//	Items:[]core.Item{
+	//		{
+	//			Url: url,
+	//			Type :"zhenai",
+	//			Id :extractStringUrl([]byte(url),idUrl),
+	//			Payload:profile,
+	//		},
+	//
+	//	},
+	//}
 	result := core.ParseResult{
 		//Items:[]interface{}{profile},
 		Items:[]core.Item{

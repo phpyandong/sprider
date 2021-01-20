@@ -3,7 +3,6 @@ package core
 import (
 	"log"
 	"fmt"
-	fetcher "sprider/fetcher"
 )
 
 type CoreEngine struct {
@@ -65,15 +64,3 @@ func createW(in chan Request,out chan ParseResult){
 	}
 }
 
-func Worker(r Request) (ParseResult,error){
-
-	body,err := fetcher.Fetch(r.Url)
-	log.Printf("FetchUrl: fetching"+
-		"url %s ",r.Url)
-	if err != nil {
-		log.Printf("Fetch: error " + "fetching"+
-			"url %s : %v",r.Url,err)
-		return ParseResult{},err
-	}
-	return r.ParserFunc(body),nil
-}

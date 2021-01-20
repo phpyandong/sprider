@@ -14,6 +14,7 @@ import (
 	"sprider/zhenai/parser"
 	"sprider/sched"
 	"sprider/store"
+	"github.com/kataras/iris/core/errors"
 )
 
 
@@ -45,9 +46,13 @@ func main(){
 	//	Url:"http://www.zhenai.com/zhenghun",
 	//	ParserFunc:parser.ParseCityList,
 	//})
+	itemChan ,err := store.ItemStore("data_profile")
+	if err != nil {
+		panic(errors.New("elastic connect Err"))
+	}
 	e := core.CoreCurrEngine{
 		Sched:&sched.CurrSched{},
-		ItemChan:store.ItemStore(),
+		ItemChan:itemChan,
 	}
 	e.Run(
 		core.Request{

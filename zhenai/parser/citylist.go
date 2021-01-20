@@ -24,9 +24,10 @@ func ParseCityList(contents []byte) core.ParseResult{
 			result.Request,
 			core.Request{
 				Url: string(m[1]),
-				ParserFunc: func(cityRes []byte) core.ParseResult {
-					return ParseCity(cityRes)
-				},
+				//ParserFunc: func(cityRes []byte) core.ParseResult {
+				//	return ParseCity(cityRes)
+				//},
+				ParserFunc:ParseCity,
 			},
 		)
 		limit--

@@ -6,13 +6,13 @@ import (
 	"gopkg.in/olivere/elastic.v5"
 	"log"
 	"context"
-	"fmt"
 	"encoding/json"
 	"sprider/core"
 )
 
 //TestSave
 func TestSave(t *testing.T){
+	const Index = "test_data_profile"
 	expected := core.Item{
 		Url:"www.bai",
 		Type :"zhenai",
@@ -24,20 +24,19 @@ func TestSave(t *testing.T){
 			Height :180,
 		},
 	}
-	err := Save(expected)
-	fmt.Printf("id %s",expected.Id)
 	client, err := elastic.NewClient(
 		elastic.SetSniff(false),
 		elastic.SetURL("http://localhost:9200/"),
 	)
+	err = Save(client,Index,expected)
+
 	if err != nil {
 		log.Printf("elactic connent err :%v",err)
 	}
 	res ,err := client.Get().
-		Index("test").
+		Index("test_data_profile").
 		Type(expected.Type).
 		Id(expected.Id).Do(context.Background())
-	fmt.Printf("res %+v",res.Source)
 	//var actual model.Profile
 	var actual core.Item
 	err = json.Unmarshal(*res.Source,&actual)

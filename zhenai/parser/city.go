@@ -50,8 +50,7 @@ func ParseCity(contents []byte) core.ParseResult{
 			result.Request,
 			core.Request{
 				Url:url,
-				ParserFunc: func(
-					bytes []byte) core.ParseResult {
+				ParserFunc: func(bytes []byte) core.ParseResult {
 					return ParseProfile(bytes,url,name)
 				},
 			},

@@ -1,10 +1,13 @@
 package core
 
-import "log"
+import (
+	"log"
+	pb "sprider/craw/rpcsupport/proto3"
+)
 
 type CoreCurrEngine struct {
 	Sched BaseCurrSched
-	ItemChan chan Item
+	ItemChan chan pb.Item
 
 }
 type BaseCurrSched interface {

@@ -1,14 +1,17 @@
 package client
 
 import (
-	"sprider/core"
 	"sprider/craw/rpcsupport"
 	"log"
+	pb "sprider/craw/rpcsupport/proto3"
+	"context"
 )
 
-func ItemStore(host string) (chan core.Item,error){
-	out := make(chan core.Item)
-	client ,err := rpcsupport.NewClient(host)
+const Pragram = "Client"
+func ItemStore(host string) (chan pb.Item,error){
+	out := make(chan pb.Item)
+	//client ,err := rpcsupport.NewClient(host)
+	grpcClient ,err := rpcsupport.NewGrpcClient(host)
 	if err != nil {
 		return nil,err
 	}
@@ -21,14 +24,22 @@ func ItemStore(host string) (chan core.Item,error){
 
 			item := <- out
 			log.Printf("save items %v",item)
-			res := ""
-			err = client.Call("ItemSaverService.Save",
-				item,&res)
+			log.Printf("【%s】save items：%v",Pragram,item)
+
+
+			res := &pb.SaveItemResult{}
+			option := &pb.SaveItemRequest{Item: &item}
+			res ,err = grpcClient.SaveItem(context.Background(),option)
+			//err = client.Call("ItemSaverService.Save",
+			//	item,&res)
+
 			//err := Save(client,storeIndex,item)
 			if err != nil {
-				log.Printf("client:item saveStore err ,saveing item %v :%v",item,err)
+				log.Printf("【%s】client:item saveStore err ,saveing item %v :%v",rpcsupport.ProgramType,item,err)
 
 			}
+			log.Printf("【%s】client:item saveStore,saveing item %v res :%v",rpcsupport.ProgramType,item,res)
+
 			itemCount ++
 		}
 	}()

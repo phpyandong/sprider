@@ -3,10 +3,10 @@ package parser
 import (
 	"regexp"
 	"strconv"
-	"sprider/model"
 	"fmt"
 	"sprider/core"
 	"strings"
+	pb "sprider/craw/rpcsupport/proto3"
 )
 var ageRegexp = regexp.MustCompile(`<td width="180"><span class="grayL">年龄：</span>([\d]+)</td>`)
 var marrRegexp = regexp.MustCompile( `<td width="180"><span class="grayL">婚况：</span>([^<])</td>`)
@@ -15,7 +15,7 @@ var idUrl  = regexp.MustCompile(
 	`http://album.zhenai.com/u/([\d]+)`,
 )
 func ParseProfile(contents []byte,url string,name string) core.ParseResult {
-	profile := model.Profile{}
+	profile := pb.Profile{}
 	str := `<div class="des f-cl" data-v-4f6f1ada>阿坝 | 56岁 | 大专 | 离异 | 168cm | 5001-8000元</div>`
 	strnew := []byte(str)
 	fmt.Println(strnew)
@@ -31,9 +31,9 @@ func ParseProfile(contents []byte,url string,name string) core.ParseResult {
 	if err != nil {
 		ageint = 0
 	}
-	profile.Age = ageint
+	profile.Age = int32(ageint)
 	profile.Education = strings.Trim(allInfo[2]," ")
-	profile.Marrage = strings.Trim(allInfo[3]," ")
+	//profile.Marrage = strings.Trim(allInfo[3]," ")
 	Height := strings.Trim(allInfo[4]," ")
 
 	Height = strings.Trim(Height,"cm")
@@ -41,7 +41,7 @@ func ParseProfile(contents []byte,url string,name string) core.ParseResult {
 	if err != nil {
 		heightInt = 0
 	}
-	profile.Height = heightInt
+	profile.Height = int32(heightInt)
 	profile.Occupation = strings.Trim(allInfo[5]," ")
 
 	//result := core.ParseResult{
@@ -58,55 +58,55 @@ func ParseProfile(contents []byte,url string,name string) core.ParseResult {
 	//}
 	result := core.ParseResult{
 		//Items:[]interface{}{profile},
-		Items:[]core.Item{
+		Items:[]pb.Item{
 			{
 				Url: url,
-				Type :"zhenai",
+				Type:"zhenai",
 				Id :extractStringUrl([]byte(url),idUrl),
-				Payload:profile,
+				Payload:&profile,
 			},
 
 		},
 	}
 	return result
 }
-
-func ParseProfile2(contents []byte,name string) core.ParseResult{
-	//re := regexp.MustCompile(ageRe)
-	profile := model.Profile{}
-	//用户名
-	profile.Name = name
-	//婚姻
-	profile.Marrage = extractString(contents,marrRegexp)
-	//年龄
-	age ,err := strconv.Atoi(
-		extractString(contents,ageRegexp),
-	)
-	fmt.Println(age,"年龄")
-	if err != nil {
-		profile.Age = age
-	}
-	//if match != nil {
-	//	age,err := strconv.Atoi(string(match[1]))
-	//	if err != nil {
-	//		profile.Age = age
-	//	}
-	//
-	//}
-	//profile.Name
-	result := core.ParseResult{
-		Items:[]core.Item{
-			{
-				Url: "",
-				Type :"zhenai",
-				Id :"",
-				Payload:profile,
-			},
-
-		},
-	}
-	return result
-}
+//
+//func ParseProfile2(contents []byte,name string) core.ParseResult{
+//	//re := regexp.MustCompile(ageRe)
+//	profile := model.Profile{}
+//	//用户名
+//	profile.Name = name
+//	//婚姻
+//	profile.Marrage = extractString(contents,marrRegexp)
+//	//年龄
+//	age ,err := strconv.Atoi(
+//		extractString(contents,ageRegexp),
+//	)
+//	fmt.Println(age,"年龄")
+//	if err != nil {
+//		profile.Age = age
+//	}
+//	//if match != nil {
+//	//	age,err := strconv.Atoi(string(match[1]))
+//	//	if err != nil {
+//	//		profile.Age = age
+//	//	}
+//	//
+//	//}
+//	////profile.Name
+//	//result := core.ParseResult{
+//	//	Items:[]core.Item{
+//	//		{
+//	//			Url: "",
+//	//			Type :"zhenai",
+//	//			Id :"",
+//	//			Payload:profile,
+//	//		},
+//	//
+//	//	},
+//	//}
+//	return
+//}
 func extractStringUrl(contents []byte,re *regexp.Regexp ) string{
 	match := re.FindSubmatch(contents)
 	//fmt.Println(len(match),"match")

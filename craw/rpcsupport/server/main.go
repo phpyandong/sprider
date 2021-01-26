@@ -37,7 +37,7 @@ func ServerGRpc(host,index string) error{
 	if err != nil {
 		panic("client new err")
 	}
-	log.Println("Es init:.... ：")
+	log.Printf("【%s】Es Client init:.... ：",rpcsupport.ProgramType)
 
 	err = rpcsupport.ServGrpc(host,&store.ItemSaverService{
 		Client:client,

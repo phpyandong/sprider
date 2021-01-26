@@ -6,6 +6,7 @@ import (
 	"log"
 	pb "sprider/craw/rpcsupport/proto3"
 	"context"
+	"sprider/craw/rpcsupport"
 )
 
 type ItemSaverService struct {
@@ -17,10 +18,10 @@ func (s *ItemSaverService) SaveItem(c context.Context,item *pb.SaveItemRequest) 
 
 	err := store.SaveGrpc(s.Client,s.Index,item.Item)
 	if err == nil {
-		log.Printf("Server:itemSaverService Save ok ：%v",item)
+		log.Printf("【%s】Server:itemSaverService Save ok ：%v",rpcsupport.ProgramType,item)
 
 	}else{
-		log.Printf("Server:itemSaverService Save err ：%v",err)
+		log.Printf("【%s】Server:itemSaverService Save err ：%v",rpcsupport.ProgramType,err)
 	}
 	return &pb.SaveItemResult{},nil
 }

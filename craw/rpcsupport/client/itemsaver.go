@@ -7,7 +7,7 @@ import (
 	"context"
 )
 
-const Pragram = "Client"
+const ProgramType = "Client"
 func ItemStore(host string) (chan pb.Item,error){
 	out := make(chan pb.Item)
 	//client ,err := rpcsupport.NewClient(host)
@@ -24,7 +24,7 @@ func ItemStore(host string) (chan pb.Item,error){
 
 			item := <- out
 			log.Printf("save items %v",item)
-			log.Printf("【%s】save items：%v",Pragram,item)
+			log.Printf("【%s】save items：%v",ProgramType,item)
 
 
 			res := &pb.SaveItemResult{}
@@ -35,10 +35,10 @@ func ItemStore(host string) (chan pb.Item,error){
 
 			//err := Save(client,storeIndex,item)
 			if err != nil {
-				log.Printf("【%s】client:item saveStore err ,saveing item %v :%v",rpcsupport.ProgramType,item,err)
+				log.Printf("【%s】client:item saveStore err ,saveing item %v :%v",ProgramType,item,err)
 
 			}
-			log.Printf("【%s】client:item saveStore,saveing item %v res :%v",rpcsupport.ProgramType,item,res)
+			log.Printf("【%s】client:item saveStore,saveing item %v res :%v",ProgramType,item,res)
 
 			itemCount ++
 		}

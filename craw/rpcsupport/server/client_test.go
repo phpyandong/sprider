@@ -8,6 +8,9 @@ import (
 	"fmt"
 	"sprider/craw/config"
 	"time"
+	"context"
+	pb "sprider/craw/rpcsupport/proto3"
+	"log"
 )
 
 func TestItemSaver(t *testing.T){
@@ -38,4 +41,32 @@ func TestItemSaver(t *testing.T){
 		panic(err)
 		t.Errorf("result : %s;err :%s",res,err)
 	}
+}
+func TestItem2Saver(t *testing.T){
+	host := fmt.Sprintf(":%d",config.ItemSaverPost)
+	//start ItemSaverServer
+	go ServerGRpc(host,"test1")
+	time.Sleep(time.Second)
+	client , err := rpcsupport.NewGrpcClient(host)
+	//start
+	item := pb.Item{
+		Url:  "www.bai",
+		Type: "zhenai",
+		Id:   "100001",
+		Payload :nil,
+		Car :nil,
+	}
+
+	if err != nil {
+		panic("client_test err")
+	}
+	res := &pb.SaveItemResult{}
+	option := &pb.SaveItemRequest{Item: &item}
+	res ,err = client.SaveItem(context.Background(),option)
+
+	if err != nil {
+		panic(err)
+		t.Errorf("result : %s;err :%s",res,err)
+	}
+	log.Printf("结果为：%v",res)
 }

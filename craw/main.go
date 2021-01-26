@@ -7,6 +7,7 @@ import (
 	"sprider/sched"
 	"github.com/pkg/errors"
 	"sprider/craw/rpcsupport/client"
+	"fmt"
 )
 
 
@@ -38,9 +39,14 @@ func main(){
 	//	Url:"http://www.zhenai.com/zhenghun",
 	//	ParserFunc:parser.ParseCityList,
 	//})
-	itemChan ,err := client.ItemStore(":1234") //store.ItemStore("data_profile")
+	itemChan ,err := client.ItemStore("192.168.1.105:1234") //store.ItemStore("data_profile")
 	if err != nil {
-		panic(errors.New("elastic connect Err"))
+		panic(
+			errors.New(
+				fmt.Sprintf("【%s】host 192.168.1.105:1234 connect Err",
+					client.ProgramType),
+				),
+			)
 	}
 	e := core.CoreCurrEngine{
 		Sched:&sched.CurrSched{},

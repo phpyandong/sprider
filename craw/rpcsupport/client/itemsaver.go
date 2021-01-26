@@ -5,6 +5,7 @@ import (
 	"log"
 	pb "sprider/craw/rpcsupport/proto3"
 	"context"
+	"time"
 )
 
 const ProgramType = "Client"
@@ -23,13 +24,14 @@ func ItemStore(host string) (chan pb.Item,error){
 		for   {
 
 			item := <- out
-			log.Printf("save items %v",item)
 			log.Printf("【%s】save items：%v",ProgramType,item)
 
 
 			res := &pb.SaveItemResult{}
 			option := &pb.SaveItemRequest{Item: &item}
-			res ,err = grpcClient.SaveItem(context.Background(),option)
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			defer cancel()
+			res ,err = grpcClient.SaveItem(ctx,option)
 			//err = client.Call("ItemSaverService.Save",
 			//	item,&res)
 

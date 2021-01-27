@@ -2,6 +2,18 @@ version: '3'
 
 services:
 
+  consul:
+    image: consul:latest
+    container_name: c4
+    ports:
+      - "8500:8500"
+    volumes:
+      - ./crawler_distributed/data:/etc/consul.d
+    command: "agent -server -bootstrap-expect 1 -data-dir /tmp/consul -node=s1 -bind=0.0.0.0 -rejoin -config-dir=/etc/consul.d/ -client 0.0.0.0"
+    logging:
+      options:
+        max-size: 50m
+
   elastic-srv:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.5.2
     ports:
@@ -14,15 +26,6 @@ services:
       options:
         max-size: 50m
 
-  item-srv:
-    image: item:latest
-    ports:
-      - "1234:1234"
-      - "8080:8080"
-    restart: always
-    logging:
-      options:
-        max-size: 50m
 
 
 

@@ -61,7 +61,8 @@ func (bf *BloomFilter) getHash(b []byte) (uint32, uint32) {
 func (bf *BloomFilter) Add(e []byte) {
 	h1, h2 := bf.getHash(e)
 	for i := 0; i < bf.hashNums; i++ {
-		//								% 布隆过滤器的容量
+		//	前32位 与次数的乘积。再计算哈希函数，		% 布隆过滤器的容量
+		//计算多个哈希值，
 		ind := (h1 + uint32(i)* h2) % uint32(bf.bloomSize)
 		bf.bitmap[ind] = true
 	}

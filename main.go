@@ -14,7 +14,7 @@ import (
 	"sprider/zhenai/parser"
 	"sprider/sched"
 	"sprider/store"
-	"github.com/kataras/iris/core/errors"
+	"errors"
 )
 
 
@@ -50,6 +50,7 @@ func main(){
 	if err != nil {
 		panic(errors.New("elastic connect Err"))
 	}
+
 	e := core.CoreCurrEngine{
 		Sched:&sched.CurrSched{},
 		ItemChan:itemChan,

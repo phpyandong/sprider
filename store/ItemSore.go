@@ -4,13 +4,12 @@ import (
 	"log"
 	"gopkg.in/olivere/elastic.v5"
 	"context"
-	"sprider/core"
 	"errors"
 	pb "sprider/craw/rpcsupport/proto3"
 )
 
-func ItemStore(storeIndex string) (chan core.Item,error){
-	out := make(chan core.Item)
+func ItemStore(storeIndex string) (chan pb.Item,error){
+	out := make(chan pb.Item)
 	client, err := elastic.NewClient(
 		elastic.SetSniff(false),
 		elastic.SetURL("http://localhost:9200/"),
@@ -24,7 +23,7 @@ func ItemStore(storeIndex string) (chan core.Item,error){
 
 			item := <- out
 			log.Printf("save items %v",item)
-			err := Save(client,storeIndex,item)
+			err := SaveGrpc(client,storeIndex,&item)
 			if err != nil {
 				log.Printf("item saveStore err ,saveing item %v :%v",item,err)
 
@@ -35,7 +34,7 @@ func ItemStore(storeIndex string) (chan core.Item,error){
 	return out,nil
 }
 
-func Save(client *elastic.Client ,storeIndexName string,item core.Item)(err error){
+func Save(client *elastic.Client ,storeIndexName string,item pb.Item)(err error){
 	// Create a client and connect to http://192.168.2.10:9201
 	//ES_HOST=es-hrnhpeom.public.tencentelasticsearch.com
 	//ES_PORT=9200

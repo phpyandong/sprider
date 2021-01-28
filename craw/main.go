@@ -39,11 +39,11 @@ func main(){
 	//	Url:"http://www.zhenai.com/zhenghun",
 	//	ParserFunc:parser.ParseCityList,
 	//})
-	itemChan ,err := client.ItemStore("192.168.1.105:1234") //store.ItemStore("data_profile")
+	itemChan ,err := client.ItemStore("localhost:1234") //store.ItemStore("data_profile")
 	if err != nil {
 		panic(
 			errors.New(
-				fmt.Sprintf("【%s】host 192.168.1.105:1234 connect Err",
+				fmt.Sprintf("【%s】host localhost:1234 connect Err",
 					client.ProgramType),
 				),
 			)

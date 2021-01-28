@@ -1,8 +1,15 @@
 # sprider
+
+```
+go ge -u
+```
 # 如果使用mac编译好文件 itemsave ，在docekr中执行会报|
 # standard_init_linux.go:211: exec user process caused "exec format error"
+#1 普通并发版
+    cd src/sprider
+    go run main.go
 
-#
+#2 微服务版
 - cd src/sprider/craw/rpcsupport/server
 
     ```

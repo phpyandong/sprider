@@ -8,6 +8,7 @@ import (
 	pb "sprider/craw/rpcsupport/proto3"
 	"google.golang.org/grpc"
 )
+
 const ProgramType = "SERVER"
 func ServGrpc(host string,service pb.StoreServiceServer ) error{
 	log.Printf("【%s】: ServGrpc host %s service :%v init:....",ProgramType,host,service)

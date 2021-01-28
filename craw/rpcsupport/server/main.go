@@ -21,7 +21,7 @@ func main()  {
 	//rpcsupport.ServRpc(":123",store.ItemSaverService{
 	//	Client:client,
 	//})
-	host := fmt.Sprintf("192.168.1.105:%d",config.ItemSaverPost)
+	host := fmt.Sprintf("localhost:%d",config.ItemSaverPost)
 
 	//log.Fatal(serverRpc(host,"data_profile"))
 	log.Fatal(ServerGRpc(host,"data_profile"))
@@ -32,7 +32,7 @@ func main()  {
 func ServerGRpc(host,index string) error{
 	client, err := elastic.NewClient(
 		elastic.SetSniff(false),
-		elastic.SetURL("http://192.168.1.105:9200/"),
+		elastic.SetURL("http://localhost:9200/"),
 	)
 	if err != nil {
 		panic("client new err")

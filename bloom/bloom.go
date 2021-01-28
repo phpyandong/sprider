@@ -60,11 +60,11 @@ func (bf *BloomFilter) getHash(b []byte) (uint32, uint32) {
 //添加一个元素(以字节数组的形式)到Bloom过滤器
 func (bf *BloomFilter) Add(e []byte) {
 	h1, h2 := bf.getHash(e)
-	//for i := 0; i < bf.hashNums; i++ {
-	//								% 布隆过滤器的容量
-	ind := (h1 + h2) % uint32(bf.bloomSize)
-	bf.bitmap[ind] = true
-	//}
+	for i := 0; i < bf.hashNums; i++ {
+		//								% 布隆过滤器的容量
+		ind := (h1 + uint32(i)* h2) % uint32(bf.bloomSize)
+		bf.bitmap[ind] = true
+	}
 	bf.itemSize++
 }
 

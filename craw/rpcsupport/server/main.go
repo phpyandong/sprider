@@ -7,7 +7,13 @@ import (
 	"log"
 	"sprider/craw/config"
 	"fmt"
+	"sprider/redis"
+	"flag"
 )
+
+var port = flag.Int("port", 0,
+	"the port for me to listen on")
+//go run main.go --port=1234
 
 func main()  {
 	//client, err := elastic.NewClient(
@@ -21,8 +27,23 @@ func main()  {
 	//rpcsupport.ServRpc(":123",store.ItemSaverService{
 	//	Client:client,
 	//})
-	host := fmt.Sprintf("localhost:%d",config.ItemSaverPost)
-
+	flag.Parse()
+	if *port == 0 {
+		*port = config.ItemSaverPost
+	}
+	host := fmt.Sprintf(":%d",*port)
+	//初始化redis链接池
+	redis.InitRedis()
+	//time.Sleep(time.Second*5)
+	//redis.GetRedis().Get()
+	//time.Sleep(time.Second*5)
+	//redis.GetRedis().Get()
+	//time.Sleep(time.Second*5)
+	//redis.GetRedis().Get()
+	//time.Sleep(time.Second*5)
+	//redis.GetRedis().Get()
+	//time.Sleep(time.Second*5)
+	//redis.GetRedis().Get()
 	//log.Fatal(serverRpc(host,"data_profile"))
 	log.Fatal(ServerGRpc(host,"data_profile"))
 

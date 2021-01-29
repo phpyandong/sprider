@@ -10,8 +10,8 @@ var RedisClient *redis.Pool
 // 初始化
 func InitRedis() {
 	RedisClient = &redis.Pool{
-		MaxIdle:     3,
-		MaxActive:   5,
+		MaxIdle:     4,
+		MaxActive:   4,
 		IdleTimeout: time.Duration(2 * time.Second),
 		Dial: func() (redis.Conn, error) {
 			c, err := redis.Dial("tcp", "140.143.139.224:6379",

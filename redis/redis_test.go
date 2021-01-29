@@ -4,9 +4,11 @@ import (
 	"testing"
 	"fmt"
 	"github.com/gomodule/redigo/redis"
+	"time"
 )
 
 func TestInitRedis(t *testing.T) {
+
 	InitRedis()
 	conn := GetRedis().Get()
 	defer conn.Close()
@@ -14,6 +16,7 @@ func TestInitRedis(t *testing.T) {
 		"name":"seiya",
 	}
 	result, err := conn.Do("HSET", "seiya", "name",profile["name"])
+	time.Sleep(time.Second)
 	fmt.Println(result)
 	if result ==1 && err != nil {
 		panic(err)

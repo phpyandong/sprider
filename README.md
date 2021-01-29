@@ -1,5 +1,7 @@
 # sprider
 
+#监听redis
+sudo tcpdump ip -n  host 140.143.139.224
 ```
 go ge -u
 ```
@@ -11,8 +13,15 @@ go ge -u
 
 #2 微服务版
 - cd src/sprider/craw/rpcsupport/server
+    手动执行
+    ```
+    go run main.go --port=1234
+    go run main.go --port=1235
 
     ```
+
+    ```
+
     make build //编译go执行文件
     make docker //生成docker 镜像
     ```

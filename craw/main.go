@@ -8,6 +8,9 @@ import (
 	"github.com/pkg/errors"
 	"sprider/craw/rpcsupport/client"
 	"fmt"
+	pb "sprider/craw/rpcsupport/proto3"
+	"sprider/craw/rpcsupport"
+	"log"
 )
 
 
@@ -39,7 +42,15 @@ func main(){
 	//	Url:"http://www.zhenai.com/zhenghun",
 	//	ParserFunc:parser.ParseCityList,
 	//})
-	itemChan ,err := client.ItemStore("localhost:1234") //store.ItemStore("data_profile")
+	//itemChan ,err := client.ItemStore("localhost:1234") //store.ItemStore("data_profile")
+	hosts := []string{":1234",":1235"}//todo 需要服务发现全部远程服务器地址，
+
+	storeServiceClientChan ,err := createClientPool(hosts)
+	if err != nil {
+		panic(err)
+	}
+	itemChan ,err := client.ItemStoreChan(storeServiceClientChan) //store.ItemStore("data_profile")
+
 	if err != nil {
 		panic(
 			errors.New(
@@ -65,6 +76,31 @@ func main(){
 	//	ParserFunc:parser.ParseCityList,
 	//})
 }
+func createClientPool(hosts []string) (chan pb.StoreServiceClient,error){
+	var clients []pb.StoreServiceClient
+	for _ ,host :=  range hosts  {
+		log.Printf("createClientPool hosts %v \n",host)
+
+		client ,err := rpcsupport.NewGrpcClient(host)
+		if err == nil {
+			clients = append(clients,client)
+		}else{
+			panic("创建client err")
+		}
+	}
+	out := make(chan pb.StoreServiceClient)
+	go func() {
+		for{
+			for _ ,client :=  range clients  {
+				log.Printf("createClientPool client %v",client)
+				out <- client
+			}
+		}
+	}()
+
+	return out,nil
+}
+
 //
 //func main2() {
 //	resp,err := http.Get("http://www.zhenai.com/zhenghun")

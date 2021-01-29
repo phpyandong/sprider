@@ -60,7 +60,11 @@ func NewClient(host string)( *rpc.Client ,error){
 func NewGrpcClient(host string)(pb.StoreServiceClient,error){
 
 	conn,err := grpc.Dial(host,grpc.WithInsecure())
+
 	if err != nil {
+		//如果端口号不存在。
+		//这里并不会报错，注意哦。todo
+		log.Printf("Dial err %v",err)
 		return nil ,err
 	}
 	client := pb.NewStoreServiceClient(conn)

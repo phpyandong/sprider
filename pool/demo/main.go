@@ -68,8 +68,13 @@ func client() {
 	putConn(connClent)
 
 	connClent3 := getConn()
-	fmt.Println(connClent3)
 	len , err = connClent2.Write([] byte("哈哈哈2"))
+	if err != nil{
+		log.Printf("conn2 err %v",err)
+	}else{
+		log.Printf("conn2 len %v",len)
+	}
+	len , err = connClent3.Write([] byte("哈哈哈2"))
 	if err != nil{
 		log.Printf("conn2 err %v",err)
 	}else{

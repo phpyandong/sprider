@@ -44,13 +44,11 @@ func main(){
 	//})
 	//itemChan ,err := client.ItemStore("localhost:1234") //store.ItemStore("data_profile")
 	hosts := []string{":1234",":1235"}//todo 需要服务发现全部远程服务器地址，
-
 	storeServiceClientChan ,err := createClientPool(hosts)
 	if err != nil {
 		panic(err)
 	}
 	itemChan ,err := client.ItemStoreChan(storeServiceClientChan) //store.ItemStore("data_profile")
-
 	if err != nil {
 		panic(
 			errors.New(
@@ -77,17 +75,29 @@ func main(){
 	//})
 }
 func createClientPool(hosts []string) (chan pb.StoreServiceClient,error){
+	//目前创建后，直接通过channel 返回，没有存储；现尝试使用容器存储
+
 	var clients []pb.StoreServiceClient
 	for _ ,host :=  range hosts  {
-		log.Printf("createClientPool hosts %v \n",host)
+		log.Printf("createClientPool hosts act .... %v \n",host)
+		//初始化gprc
+		log.Printf("createClientPool InitGrpcClient act %v",host)
+
+		rpcsupport.InitGrpcClient(host)
+		log.Printf("createClientPool InitGrpcClient end %v",host)
 
 		client ,err := rpcsupport.NewGrpcClient(host)
+
 		if err == nil {
+			log.Printf("createClientPool succ %v",host)
 			clients = append(clients,client)
 		}else{
 			panic("创建client err")
 		}
+		log.Printf("createClientPool hosts end .... %v \n",host)
+
 	}
+
 	out := make(chan pb.StoreServiceClient)
 	go func() {
 		for{

@@ -12,8 +12,8 @@ import (
 	"net/http"
 	"time"
 	"context"
-	"sprider/craw/config"
-	"sprider/redis"
+	"github.com/gin-gonic/gin"
+	"strconv"
 	"fmt"
 )
 
@@ -21,7 +21,7 @@ var port = flag.Int("port", 0,
 	"the port for me to listen on")
 //go run main.go --port=1234
 
-func main()  {
+func main2()  {
 	//client, err := elastic.NewClient(
 	//	elastic.SetSniff(false),
 	//	elastic.SetURL("http://localhost:9200/"),
@@ -33,13 +33,13 @@ func main()  {
 	//rpcsupport.ServRpc(":123",store.ItemSaverService{
 	//	Client:client,
 	//})
-	flag.Parse()
-	if *port == 0 {
-		*port = config.ItemSaverPost
-	}
-	host := fmt.Sprintf(":%d",*port)
-	//初始化redis链接池
-	redis.InitRedis()
+	//flag.Parse()
+	//if *port == 0 {
+	//	*port = config.ItemSaverPost
+	//}
+	//host := fmt.Sprintf(":%d",*port)
+	////初始化redis链接池
+	//redis.InitRedis()
 
 
 	//time.Sleep(time.Second*5)
@@ -53,23 +53,70 @@ func main()  {
 	//time.Sleep(time.Second*5)
 	//redis.GetRedis().Get()
 	//log.Fatal(serverRpc(host,"data_profile"))
-	log.Fatal(ServerGRpc(host,"data_profile"))
+	//log.Fatal(ServerGRpc(host,"data_profile"))
 
 	//go HttpServer()
 
 
 }
-func HttpServer(){
-	server := &http.Server{
-		Addr:    ":8080",
+
+// 模拟慢请求
+func sleep(ctx *gin.Context) {
+	t := ctx.Query("t")
+	s, err := strconv.Atoi(t)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "参数错误: " + t})
+		return
 	}
-	http.HandleFunc("/ping", func(res http.ResponseWriter, req *http.Request){
-		_, err := res.Write([]byte("pong"));
-		if err != nil{
-			log.Fatal("write err--->",err)
+
+	time.Sleep(time.Duration(s) * time.Second)
+	ctx.JSON(http.StatusOK, gin.H{"msg": fmt.Sprintf("sleep %d s", s)})
+}
+
+
+const (
+	stateHealth   = "health"
+	stateUnHealth = "unhealth"
+)
+
+var state = stateHealth
+
+func health(ctx *gin.Context) {
+	status := http.StatusOK
+	if state == stateUnHealth {
+		status = http.StatusServiceUnavailable
+	}
+	ctx.JSON(status, gin.H{"data": state})
+}
+
+//技术总结：
+//
+//1. Shutdown 方法要写在主 goroutine 中；
+//
+//2.在主 goroutine 中的处理逻辑才会阻塞等待处理；
+//
+//3.带超时的 Context 是在创建时就开始计时了，因此需要在接收到结束信号后再创建带超时的 Context。
+//
+//给大家推荐一个框架来快速构建带优雅退出功能的 http 服务，详见： https://www.cnblogs.com/zhucheer/p/12341595.html
+//
+
+func main() {
+
+	e := gin.Default()
+	e.GET("/health", health)
+	e.GET("/sleep", sleep)
+
+	server := &http.Server{
+		Addr:    ":8099",
+		Handler: e,
+	}
+
+	go func() {
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("server run err: %+v", err)
 		}
-	})
-	server.ListenAndServe()
+	}()
+
 	// 用于捕获退出信号
 	quit := make(chan os.Signal)
 
@@ -77,12 +124,25 @@ func HttpServer(){
 	// kill -2 is syscall.SIGINT
 	// kill -9 is syscall.SIGKILL but can't be catch, so don't need add it
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
+
+	select {
+		case <-quit:
+			// 捕获到退出信号之后将健康检查状态设置为 unhealth
+			state = stateUnHealth
+			log.Println("Shutting down state: ", state)
+			// 设置超时时间，两个心跳周期，假设一次心跳 3s
+			ctx, cancel := context.WithTimeout(context.Background(), 18*time.Second)
+			defer cancel()
+			if err := server.Shutdown(ctx); err != nil {
+				log.Fatal("Server forced to shutdown:", err)
+			}
+
+
+	}
 	log.Println("Shutting down server...")
 
-	// 设置超时时间，两个心跳周期，假设一次心跳 3s
-	ctx, cancelFunc := context.WithTimeout(context.Background(), 6*time.Second)
-	defer cancelFunc()
+
+
 
 	// Shutdown 接口，如果没有新的连接了就会释放，传入超时 context
 	// 调用这个接口会关闭服务，但是不会中断活动连接
@@ -93,9 +153,7 @@ func HttpServer(){
 	// 调用这个接口 server 监听端口会返回 ErrServerClosed 错误
 	// 注意，这个接口不会关闭和等待websocket这种被劫持的链接，如果做一些处理。可以使用 RegisterOnShutdown 注册一些清理的方法
 
-	if err := server.Shutdown(ctx); err != nil {
-		log.Fatal("Server forced to shutdown:", err)
-	}
+
 	log.Println("Server exiting")
 }
 func ServerGRpc(host,index string) error{

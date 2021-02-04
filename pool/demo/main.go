@@ -9,6 +9,7 @@ import (
 "time"
 	"reflect"
 	"log"
+	"sprider/tool"
 )
 
 const addr string = "127.0.0.1:8080"
@@ -16,7 +17,7 @@ const addr string = "127.0.0.1:8080"
 func main() {
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt, os.Kill, syscall.SIGUSR1, syscall.SIGUSR2)
-	go server()
+	tool.Go(server)
 	//等待tcp server启动
 	time.Sleep(2 * time.Second)
 	client()

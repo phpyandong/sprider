@@ -15,13 +15,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"strconv"
 	"fmt"
+	"sprider/craw/config"
+	"sprider/redis"
 )
 
 var port = flag.Int("port", 0,
 	"the port for me to listen on")
 //go run main.go --port=1234
 
-func main2()  {
+func main()  {
 	//client, err := elastic.NewClient(
 	//	elastic.SetSniff(false),
 	//	elastic.SetURL("http://localhost:9200/"),
@@ -33,13 +35,13 @@ func main2()  {
 	//rpcsupport.ServRpc(":123",store.ItemSaverService{
 	//	Client:client,
 	//})
-	//flag.Parse()
-	//if *port == 0 {
-	//	*port = config.ItemSaverPost
-	//}
-	//host := fmt.Sprintf(":%d",*port)
-	////初始化redis链接池
-	//redis.InitRedis()
+	flag.Parse()
+	if *port == 0 {
+		*port = config.ItemSaverPost
+	}
+	host := fmt.Sprintf(":%d",*port)
+	//初始化redis链接池
+	redis.InitRedis()
 
 
 	//time.Sleep(time.Second*5)
@@ -53,7 +55,7 @@ func main2()  {
 	//time.Sleep(time.Second*5)
 	//redis.GetRedis().Get()
 	//log.Fatal(serverRpc(host,"data_profile"))
-	//log.Fatal(ServerGRpc(host,"data_profile"))
+	log.Fatal(ServerGRpc(host,"data_profile"))
 
 	//go HttpServer()
 
@@ -100,7 +102,7 @@ func health(ctx *gin.Context) {
 //给大家推荐一个框架来快速构建带优雅退出功能的 http 服务，详见： https://www.cnblogs.com/zhucheer/p/12341595.html
 //
 
-func main() {
+func main2() {
 
 	e := gin.Default()
 	e.GET("/health", health)

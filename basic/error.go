@@ -1,5 +1,6 @@
 package basic
 
+import "errors"
 
 /* ================================================================================
  * 错误模块
@@ -78,6 +79,31 @@ func initError() {
 	VoiceTransformErr = customError(VoiceTransformCode)
 }
 
+//===========关于 判断 error 行为 todo  ================
+type Error interface {
+	error
+	NotFound() bool
+}
+type notFound interface {
+	NotFound() bool
+}
+type ApError struct {
+	// Err is the error that occurred during the operation.
+	Err error
+}
+
+func(c *ApError) NotFound() bool{
+	t, ok := c.Err.(notFound)
+
+	return ok && t.NotFound()
+}
+func testAppErr(){
+	err := ApError{errors.New("err")}
+	err.NotFound()
+}
+//===========================
+
+
 /* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  * 返回指定错误对象
  * ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
@@ -88,6 +114,7 @@ func customError(code int32) *CustomError {
 		Msg:  msg,
 	}
 }
+
 
 /* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  * 返回自定义错误对象

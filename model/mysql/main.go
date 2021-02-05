@@ -11,7 +11,9 @@ func main() {
 	config.InitDB()
 
 	err := getComment()
-	log.Printf("%+v",err)
+	log.Printf("堆栈信息%+v",err)
+	log.Printf("%T %+v",errors.Cause(err),errors.Cause(err))
+
 
 }
 
@@ -19,5 +21,5 @@ func getComment() error {
 	commModel := new(model.Comment)
 	id := int64(12121)
 	err := commModel.SelectById(id)
-	return errors.Wrap(err,"getComment")
+	return errors.WithMessage(err,"getComment")
 }

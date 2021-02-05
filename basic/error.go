@@ -1,6 +1,9 @@
 package basic
 
-import "errors"
+import (
+	"errors"
+	"reflect"
+)
 
 /* ================================================================================
  * 错误模块
@@ -103,6 +106,28 @@ func testAppErr(){
 }
 //===========================
 
+func Is(err, target error) bool {
+	if target == nil {
+		return err == target
+	}
+	// 通过反射判读 target 是否可以被比较
+	isComparable := reflect.TypeOf(target).Comparable()
+	for {
+		// 循环判断是否相等
+		if isComparable && err == target {
+			return true
+		}
+		// 判断是否实现了 is 接口，如果有实现就直接判断
+		if x, ok := err.(interface{ Is(error) bool }); ok && x.Is(target) {
+			return true
+		}
+
+		// 去判断是否实现了 unwrap 的接口，如果实现了就进行 unwrap
+		if err = errors.Unwrap(err); err == nil {
+			return false
+		}
+	}
+}
 
 /* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  * 返回指定错误对象

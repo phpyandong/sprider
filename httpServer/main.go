@@ -37,6 +37,7 @@ const (
 
 var state = stateHealth
 
+//ab -n 10000 -c 200 "http://localhost:8099/health"
 func health(ctx *gin.Context) {
 	fmt.Println("health init ")
 

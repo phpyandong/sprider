@@ -168,7 +168,8 @@ func (comment *Comment) SelectById(id interface{}) error {
 		}
 		return errors.Wrapf(err,
 			fmt.Sprintf("sql: %s error: %v", "sqlxxxxx语句，orm 没有合适的获得sql的方式",
-				err))	}
+				err))
+	}
 
 	return nil
 }

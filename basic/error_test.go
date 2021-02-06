@@ -13,6 +13,17 @@ func TestIs(t *testing.T) {
 	err := errors.Wrap(Aperr,"增加内容")
 	fmt.Println("是否err:",Is(err,Aperr))
 	var a *ApError
+	//======== %w 包装  可使用Is()判断 ========
+	err3 := fmt.Errorf("notfound:%w",NotFoundError)//这里的重点是 %w 可以包装
+	if errors2.Is(err3,NotFoundError){
+		fmt.Println("err3 is notfound")
+	}else{
+		fmt.Println("err3 not is notfound")
+
+	}
+
+
+
 	if errors2.As(err,&a){
 		fmt.Println("err is Aperr")
 	}else{

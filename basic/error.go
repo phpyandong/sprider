@@ -1,8 +1,9 @@
 package basic
 
 import (
-	"errors"
+	"github.com/pkg/errors"
 	"reflect"
+	"fmt"
 )
 
 /* ================================================================================
@@ -150,5 +151,23 @@ func NewCustomError(code int32, msg string) *CustomError {
 	return &CustomError{
 		Code: code,
 		Msg:  msg,
+	}
+}
+
+/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ *  包装返回 使用 %w 可以使用Is()判断  %+v可以记录堆栈信息
+ * ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+func testErr(){
+	Aperr := &ApError{errors.New("我是测试test")}
+	err := errors.Wrap(Aperr,"增加内容")
+	fmt.Println("是否err:",Is(err,Aperr))
+	var a *ApError
+	//======== %w 包装  可使用Is()判断 ========
+	err3 := fmt.Errorf("notfound:%w",NotFoundError)//这里的重点是 %w 可以包装
+	if Is(err3,NotFoundError){
+		fmt.Println("err3 is notfound")
+	}else{
+		fmt.Println("err3 not is notfound")
+
 	}
 }

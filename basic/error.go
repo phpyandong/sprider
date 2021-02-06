@@ -2,6 +2,7 @@ package basic
 
 import (
 	"github.com/pkg/errors"
+	errors2 "errors"
 	"reflect"
 	"fmt"
 )
@@ -98,6 +99,7 @@ type ApError struct {
 func (c *ApError) Error() string{
 	return "ap:error "
 }
+//断言行为去判断，而不是断言类型 todo
 func(c *ApError) NotFound() bool{
 	t, ok := c.Err.(notFound)
 
@@ -126,7 +128,7 @@ func Is(err, target error) bool {
 		}
 
 		// 去判断是否实现了 unwrap 的接口，如果实现了就进行 unwrap
-		if err = errors.Unwrap(err); err == nil {
+		if err = errors2.Unwrap(err); err == nil {
 			return false
 		}
 	}
@@ -157,17 +159,27 @@ func NewCustomError(code int32, msg string) *CustomError {
 /* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  *  包装返回 使用 %w 可以使用Is()判断  %+v可以记录堆栈信息
  * ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
-func testErr(){
+func TestErr(){
 	Aperr := &ApError{errors.New("我是测试test")}
 	err := errors.Wrap(Aperr,"增加内容")
 	fmt.Println("是否err:",Is(err,Aperr))
 	var a *ApError
 	//======== %w 包装  可使用Is()判断 ========
-	err3 := fmt.Errorf("notfound:%w",NotFoundError)//这里的重点是 %w 可以包装
+	err3 := fmt.Errorf("用户 uid xxx  notfound:%w",NotFoundError)
+	//这里的重点是 %w 不可保存堆栈（官方为了兼容，没有增加堆栈）可以包装 额外的用户信息 加入到notfound ,同时又可以用Is 进行判断
+	//go 2 会使用%+v 堆栈信息
 	if Is(err3,NotFoundError){
 		fmt.Println("err3 is notfound")
 	}else{
 		fmt.Println("err3 not is notfound")
 
 	}
+	//
+	if errors2.As(err,&a){
+		fmt.Println("err is Aperr")
+	}else{
+		fmt.Println("err is not Aperr")
+
+	}
 }
+

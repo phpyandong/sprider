@@ -94,7 +94,9 @@ type ApError struct {
 	// Err is the error that occurred during the operation.
 	Err error
 }
-
+func (c *ApError) Error() string{
+	return "ap:error "
+}
 func(c *ApError) NotFound() bool{
 	t, ok := c.Err.(notFound)
 

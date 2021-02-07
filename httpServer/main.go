@@ -1,19 +1,16 @@
 package main
 
 import (
-	"sprider/craw/rpcsupport"
-	"sprider/craw/store"
-	"gopkg.in/olivere/elastic.v5"
-	"log"
-	"os/signal"
-	"syscall"
-	"os"
 	"net/http"
 	"time"
-	"context"
 	"github.com/gin-gonic/gin"
 	"strconv"
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+	"log"
+	"context"
 )
 
 // 模拟慢请求
@@ -76,6 +73,29 @@ type Message struct{
 }
 var Mss chan Message
 func main() {
+	done := make(chan error ,2)
+	stop := make(chan struct{})
+	go func() {
+		done <- Serv(stop)
+	}()
+	go func() {
+		done <- ServWork(stop)
+	}()
+	var stopped bool
+	for i:=0; i< cap(done);i++ {
+		if err := <-done; err != nil{
+			fmt.Println("error:%v",err)
+		}
+		if !stopped {
+			stopped = true
+			close(stop)
+		}
+	}
+}
+func ServWork(stop <-chan struct{})  error{
+	return nil
+}
+func Serv(stop chan struct{})  error{
 	Mss = make(chan Message)
 	for i:=0;i<10;i++{
 		go worker(i,Mss)
@@ -88,12 +108,16 @@ func main() {
 		Addr:    ":8099",
 		Handler: e,
 	}
-
+	//+++++++++++++++++++++++++++++++++++++++++++++++
+	//stop信号;另一个服务异常退出后，给出一个stop信号，关闭本服务
 	go func() {
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("server run err: %+v", err)
-		}
+		<-stop
+		server.Shutdown(context.Background())
 	}()
+	//+++++++++++++++++++++++++++++++++++++++++++++++
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Fatalf("server run err: %+v", err)
+	}
 
 	// 用于捕获退出信号
 	quit := make(chan os.Signal)
@@ -104,24 +128,18 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	select {
-		case <-quit:
-			// 捕获到退出信号之后将健康检查状态设置为 unhealth
-			state = stateUnHealth
-			log.Println("Shutting down state: ", state)
-			// 设置超时时间，两个心跳周期，假设一次心跳 3s
-			ctx, cancel := context.WithTimeout(context.Background(), 18*time.Second)
-			defer cancel()
-			if err := server.Shutdown(ctx); err != nil {
-				log.Fatal("Server forced to shutdown:", err)
-			}
-
-
+	case <-quit:
+		// 捕获到退出信号之后将健康检查状态设置为 unhealth
+		state = stateUnHealth
+		log.Println("Shutting down state: ", state)
+		// 设置超时时间，两个心跳周期，假设一次心跳 3s
+		ctx, cancel := context.WithTimeout(context.Background(), 6*time.Second)
+		defer cancel()
+		if err := server.Shutdown(ctx); err != nil {
+			log.Fatal("Server forced to shutdown:", err)
+		}
 	}
 	log.Println("Shutting down server...")
-
-
-
-
 	// Shutdown 接口，如果没有新的连接了就会释放，传入超时 context
 	// 调用这个接口会关闭服务，但是不会中断活动连接
 	// 首先会将端口监听移除
@@ -130,46 +148,7 @@ func main() {
 	// 如果等待时间超过了传入的 context 的超时时间，就会强制退出
 	// 调用这个接口 server 监听端口会返回 ErrServerClosed 错误
 	// 注意，这个接口不会关闭和等待websocket这种被劫持的链接，如果做一些处理。可以使用 RegisterOnShutdown 注册一些清理的方法
-
-
 	log.Println("Server exiting")
-}
-func ServerGRpc(host,index string) error{
-	client, err := elastic.NewClient(
-		elastic.SetSniff(false),
-		elastic.SetURL("http://localhost:9200/"),
-	)
-	if err != nil {
-		panic("client new err")
-	}
-	log.Printf("【%s】Es Client init:.... ：",rpcsupport.ProgramType)
 
-	err = rpcsupport.ServGrpc(host,&store.ItemSaverService{
-		Client:client,
-		Index:index,
-	})
-	if err != nil {
-		panic(err)
-	}
-	return err
-}
-func serverRpc(host,index string) error{
-	client, err := elastic.NewClient(
-		elastic.SetSniff(false),
-		elastic.SetURL("http://localhost:9200/"),
-	)
-	if err != nil {
-		panic("client new err")
-	}
-
-	err = rpcsupport.ServRpc(host,
-	&store.ItemSaverService{//todo 注意这里要传引用，这样构成指针接收者？？？？
-		Client:client,
-		Index:index,
-	},
-	)
-	if err != nil {
-		panic(err)
-	}
-	return err
+	return nil
 }

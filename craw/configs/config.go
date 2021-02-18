@@ -27,16 +27,19 @@ func Init()  {
 		panic(err)
 	}
 	//// 获取对应的值内容：
-	name, _ := c.Value("server.http.addr").String()
+	name, _ := c.Value("server.http").String()
 	fmt.Println(name)
-	//// 解析到结构体（由于已经合并到map[string]interface{}，所以需要指定 jsonName 进行解析）：
+	// 解析到结构体（由于已经合并到map[string]interface{}，所以需要指定 jsonName 进行解析）：
 	//var v struct {
 	//	Service string `json:"service"`
 	//	Version string `json:"version"`
 	//}
-	//if err := c.Scan(&v); err != nil {
-	//	panic(err)
-	//}
+	var v Bootstrap
+
+	if err := c.Scan(&v); err != nil {
+		panic(err)
+	}
+	fmt.Println(v.Data.Redis.Addr)
 	//// 监听值内容变更
 	//c.Watch("service.name", func(key string, value config.Value) {
 	//	// 值内容变更

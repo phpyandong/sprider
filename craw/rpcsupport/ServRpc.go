@@ -17,6 +17,7 @@ func ServGrpc(host string,service pb.StoreServiceServer ) error{
 
 	server := grpc.NewServer()
 	pb.RegisterStoreServiceServer(server,service)
+
 	listner, err := net.Listen("tcp",host)
 	if err != nil {
 		log.Fatalf("【%s】:failed to listen :%v",ProgramType,err)
@@ -67,7 +68,9 @@ func InitGrpcClient(host string)(error){
 		//dialOption := grpc.WithReturnConnectionError()//开启连接失败返回错误，默认开启
 		log.Printf("InitGrpcClient dial:%v: act...",host)
 
-		conn,err := grpc.Dial(host,grpc.WithInsecure(),grpc.WithReturnConnectionError() )
+		//conn,err := grpc.Dial(host,grpc.WithInsecure(),grpc.WithReturnConnectionError() )
+		conn,err := grpc.Dial(host,grpc.WithInsecure() )
+
 		//todo 这里阻塞了，研究下
 		log.Printf("InitGrpcClient dial:%v: end...",host)
 

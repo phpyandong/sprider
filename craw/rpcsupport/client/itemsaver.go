@@ -6,6 +6,7 @@ import (
 	pb "sprider/craw/rpcsupport/proto3"
 	"context"
 	"time"
+	"github.com/pkg/errors"
 )
 
 const ProgramType = "Client"
@@ -55,8 +56,7 @@ func ItemStoreChan(grpcClientChan chan pb.StoreServiceClient) (chan pb.Item,erro
 	//	return nil,err
 	//}
 
-
-
+	var err error
 	go func() {
 		itemCount := 0
 		for   {
@@ -71,6 +71,9 @@ func ItemStoreChan(grpcClientChan chan pb.StoreServiceClient) (chan pb.Item,erro
 			defer cancel()
 			grpcClient := <-grpcClientChan
 			res ,err := grpcClient.SaveItem(ctx,option)
+			if err != nil {
+				err = errors.Wrap(err,"ItemStoreChan:err")
+			}
 			//err = client.Call("ItemSaverService.Save",
 			//	item,&res)
 
@@ -84,5 +87,5 @@ func ItemStoreChan(grpcClientChan chan pb.StoreServiceClient) (chan pb.Item,erro
 			itemCount ++
 		}
 	}()
-	return out,nil
+	return out,err
 }

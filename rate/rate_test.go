@@ -82,7 +82,7 @@ func run(t *testing.T, lim *Limiter, allows []allow) {
 }
 func TestLimiterBurst2(t *testing.T){
 	//创建一个limiter
-	lim := NewLimiter(2, 3)
+	lim := NewLimiter(1, 3)
 
 	ok := lim.AllowN(time.Now(),1)
 	if ok {
@@ -97,13 +97,22 @@ func TestLimiterBurst2(t *testing.T){
 	}else{
 		fmt.Printf("第2个消费 %v\n",ok)
 	}
-	time.Sleep(5*time.Second)
 
-	ok = lim.Allow()
+
+	ok = lim.AllowN(time.Now(),1)
 	if ok {
 		fmt.Printf("第3个消费 %v\n",ok)
 	}else{
 		fmt.Printf("第3个消费 %v\n",ok)
+	}
+	time.Sleep(5*time.Second)
+
+
+	ok = lim.Allow()
+	if ok {
+		fmt.Printf("第4个消费 %v\n",ok)
+	}else{
+		fmt.Printf("第4个消费 %v\n",ok)
 	}
 }
 

@@ -141,7 +141,7 @@ type Reservation struct {
 	ok        bool
 	lim       *Limiter
 	tokens    int
-	timeToAct time.Time
+	timeToAct time.Time //多久后开始
 	// This is the Limit at reservation time, it can change later.
 	limit Limit
 }
@@ -341,6 +341,9 @@ func (lim *Limiter) SetLimitAt(now time.Time, newLimit Limit) {
 // maxfuturerreserve允许的最大预留等待时间。
 // reserveN返回预留，而不是*预留，以避免在allow和WaitN中分配。
 func (lim *Limiter) reserveN(now time.Time, n int, maxFutureReserve time.Duration) Reservation {
+	//todo reserveN 方法是线程安全的，通过互斥锁锁住判断操作：
+
+
 	lim.mu.Lock()
 
 	if lim.limit == Inf {
@@ -354,6 +357,7 @@ func (lim *Limiter) reserveN(now time.Time, n int, maxFutureReserve time.Duratio
 	}
 
 	now, last, tokens := lim.advance(now)
+	//todo 更新补充后的当前令牌数减去请求的令牌数，如果不足，根据不足的令牌数计算需要等待的时间：
 
 	// Calculate the remaining number of tokens resulting from the request.
 	//计算请求产生的token的剩余数量。
@@ -368,6 +372,8 @@ func (lim *Limiter) reserveN(now time.Time, n int, maxFutureReserve time.Duratio
 
 	// Decide result
 	// 决定结果
+	//todo 根据请求数量和等待时间判断是否允许请求：
+
 	ok := n <= lim.burst && waitDuration <= maxFutureReserve
 
 	// Prepare reservation
@@ -404,8 +410,11 @@ func (lim *Limiter) advance(now time.Time) (newNow time.Time, newLast time.Time,
 	if now.Before(last) {
 		last = now
 	}
+	//todo   根据令牌数限制和当前存在的令牌数计算还有上次更新至今的时间差计算可以补充多少令牌：
+
 
 	// Avoid making delta overflow below when last is very old.
+
 	//当last非常老的时候，避免使下面的delta溢出。
 	maxElapsed := lim.limit.durationFromTokens(float64(lim.burst) - lim.tokens)
 	fmt.Printf("advance maxElapsed :%v \n",maxElapsed)
@@ -429,6 +438,7 @@ func (lim *Limiter) advance(now time.Time) (newNow time.Time, newLast time.Time,
 // durationFromTokens is a unit conversion function from the number of tokens to the duration
 // of time it takes to accumulate them at a rate of limit tokens per second.
 //durationFromTokens是一个单位转换函数，从令牌数量到以每秒限制令牌的速度积累它们所需的时间。
+//todo 时间和令牌的计算是根据单位时间内的限制数量和剩余令牌数所占比例计算的：
 func (limit Limit) durationFromTokens(tokens float64) time.Duration {
 	fmt.Printf("durationFromTokens tokens :%v limit :%v\n",tokens,limit)
 	seconds := tokens / float64(limit)

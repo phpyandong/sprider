@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc"
 	"fmt"
 	"time"
+	"context"
 )
 
 const ProgramType = "SERVER"
@@ -69,7 +70,9 @@ func InitGrpcClient(host string)(error){
 		log.Printf("InitGrpcClient dial:%v: act...",host)
 
 		//conn,err := grpc.Dial(host,grpc.WithInsecure(),grpc.WithReturnConnectionError() )
-		conn,err := grpc.Dial(host,grpc.WithInsecure() )
+		ctx,cannel := context.WithTimeout(context.Background(),1*time.Second)
+		conn,err := grpc.DialContext(ctx,host,grpc.WithInsecure() )
+		defer cannel()//grpc设置超时
 
 		//todo 这里阻塞了，研究下
 		log.Printf("InitGrpcClient dial:%v: end...",host)

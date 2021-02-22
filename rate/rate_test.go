@@ -9,6 +9,7 @@ import (
 "testing"
 "time"
 	"fmt"
+	"golang.org/x/time/rate"
 )
 
 func TestLimit(t *testing.T) {

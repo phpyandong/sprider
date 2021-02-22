@@ -2,10 +2,14 @@ package clicewindow
 
 import (
 	"sync"
+	"sprider/clicewindow/ring"
 	"container/ring"
 	"math"
 	"time"
+	"errors"
+	"fmt"
 )
+
 
 /**
 redis 滑动窗口实现

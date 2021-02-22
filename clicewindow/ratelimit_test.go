@@ -3,6 +3,7 @@ package clicewindow
 import (
 "testing"
 "time"
+	"fmt"
 )
 
 func BenchmarkLimiting(b *testing.B) {
@@ -28,13 +29,13 @@ func BenchmarkLimiting(b *testing.B) {
 
 func TestLimiting(t *testing.T) {
 	var slidewindow, _ = Init(10, 1000, 10000)
-	for i := 0; i < 10000; i++ {
+	for i := 0; i < 10001; i++ {
 
 		go func() {
 
 			err := slidewindow.Limiting()
 			if err != nil {
-				// fmt.Println(err.Error())
+				fmt.Println("err:",err.Error())
 			}
 		}()
 	}

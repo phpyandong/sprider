@@ -3,7 +3,6 @@ package clicewindow
 import (
 	"sync"
 	"sprider/clicewindow/ring"
-	"container/ring"
 	"math"
 	"time"
 	"errors"
@@ -12,6 +11,7 @@ import (
 
 
 /**
+
 redis 滑动窗口实现
 public boolean isActionAllowed(String userId, String actionKey, int period, int maxCount) {
 	String key = String.format("hist:%s:%s", userId, actionKey);
@@ -27,6 +27,8 @@ public boolean isActionAllowed(String userId, String actionKey, int period, int 
 	return count.get() <= maxCount;
 }
 **/
+
+//https://segmentfault.com/a/1190000023033365  解析文章参考
 // 窗口节点
 type bucketNode struct {
 	startTime int64 // 节点开始时间

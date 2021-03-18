@@ -1,6 +1,6 @@
-# sprider
-
-#监听redis
+＃sprider
+这是个golang实现的爬虫项目
+＃监听redis
 sudo tcpdump ip -n  host 140.143.139.224
 ```
 go ge -u

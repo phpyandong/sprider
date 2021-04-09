@@ -9,7 +9,6 @@ import (
 "testing"
 "time"
 	"fmt"
-	"golang.org/x/time/rate"
 )
 
 func TestLimit(t *testing.T) {
@@ -82,7 +81,7 @@ func run(t *testing.T, lim *Limiter, allows []allow) {
 	}
 }
 func TestLimiterBurst2(t *testing.T){
-	//创建一个limiter
+	//创建一个limiter 放入频率为1秒一个，桶大小为3个，即1秒内有桶中可以处理3个请求
 	lim := NewLimiter(1, 3)
 
 	ok := lim.AllowN(time.Now(),1)

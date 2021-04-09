@@ -78,6 +78,9 @@ func Every(interval time.Duration) Limit {
 type Limiter struct {
 	limit Limit
 	burst int
+	//burst 代表了桶的大小，从实际意义上来讲，可以理解为服务可以承载的并发量大小；
+	// limit 代表了 放入桶的频率，可以理解为正常情况下，1s内我们的服务可以处理的请求个数。
+	//{limit:2,burst :3} //即一秒内放入2个，桶最多可以容纳3个请求
 
 	mu     sync.Mutex
 	tokens float64
@@ -137,13 +140,16 @@ func (lim *Limiter) AllowN(now time.Time, n int) bool {
 // A Reservation may be canceled, which may enable the Limiter to permit additional events.
 //一个Reservation保存了关于在延迟后被限制器允许发生的事件的信息。
 //可以取消预订，这可能使限制器允许额外的事件。
+//在令牌发放后，会被保留在Reservation 对象中，
+//Reservation 对象，描述了一个在达到 timeToAct 时间后，可以获取到的令牌的数量tokens。
+// （因为有些需求会做预留的功能，所以timeToAct 并不一定就是当前的时间。
 type Reservation struct {
-	ok        bool
-	lim       *Limiter
-	tokens    int
-	timeToAct time.Time //多久后开始
+	ok        bool //// 是否满足条件分配到了tokens
+	lim       *Limiter// 发送令牌的限流器
+	tokens    int // tokens 的数量
+	timeToAct time.Time //多久后开始//  满足令牌发放的时间
 	// This is the Limit at reservation time, it can change later.
-	limit Limit
+	limit Limit // 令牌发放速度
 }
 
 // OK returns whether the limiter can provide the requested number of tokens
@@ -340,12 +346,15 @@ func (lim *Limiter) SetLimitAt(now time.Time, newLimit Limit) {
 //reserveN是allow、reserveN和WaitN的辅助方法。
 // maxfuturerreserve允许的最大预留等待时间。
 // reserveN返回预留，而不是*预留，以避免在allow和WaitN中分配。
+// 在 now 时间需要拿到n个令牌，最多可以等待的时间为maxFutureResrve
+// 结果将返回一个预留令牌的对象
+
 func (lim *Limiter) reserveN(now time.Time, n int, maxFutureReserve time.Duration) Reservation {
 	//todo reserveN 方法是线程安全的，通过互斥锁锁住判断操作：
 
 
 	lim.mu.Lock()
-
+	// 首先判断是否放入频次是否为无穷大，如果为无穷大，说明暂时不限流
 	if lim.limit == Inf {
 		lim.mu.Unlock()
 		return Reservation{
@@ -355,17 +364,18 @@ func (lim *Limiter) reserveN(now time.Time, n int, maxFutureReserve time.Duratio
 			timeToAct: now,
 		}
 	}
-
+	// 拿到截至now 时间时，可以获取的令牌tokens数量，上一次拿走令牌的时间last
 	now, last, tokens := lim.advance(now)
 	//todo 更新补充后的当前令牌数减去请求的令牌数，如果不足，根据不足的令牌数计算需要等待的时间：
 
 	// Calculate the remaining number of tokens resulting from the request.
-	//计算请求产生的token的剩余数量。
+	//拿走token后的剩余数量。
 	tokens -= float64(n)
 	fmt.Printf("token:%v\n",tokens)
 	// Calculate the wait duration
 	//计算等待时间
 	var waitDuration time.Duration
+	// 如果tokens 为负数，说明需要等待，计算等待的时间，即10个只有9个拿到 为-1 ，即需要等待一个时间，
 	if tokens < 0 {
 		waitDuration = lim.limit.durationFromTokens(-tokens)
 	}
@@ -373,11 +383,13 @@ func (lim *Limiter) reserveN(now time.Time, n int, maxFutureReserve time.Duratio
 	// Decide result
 	// 决定结果
 	//todo 根据请求数量和等待时间判断是否允许请求：
-
+	// 计算是否满足分配条件
+	// ① 需要分配的大小不超过桶容量
+	// ② 等待时间不超过设定的等待时常
 	ok := n <= lim.burst && waitDuration <= maxFutureReserve
 
 	// Prepare reservation
-	//准备预订
+	//准备预订，  // 最后构造一个Reservation对象
 	r := Reservation{
 		ok:    ok,
 		lim:   lim,
@@ -389,6 +401,11 @@ func (lim *Limiter) reserveN(now time.Time, n int, maxFutureReserve time.Duratio
 	}
 
 	// Update state/ /更新状态
+	// 并更新当前limiter 的值
+	//从实现上看，limiter 并不是每隔一段时间更新当前桶中令牌的数量，
+	// 而是记录了上次访问时间和当前桶中令牌的数量。
+	// 当再次访问时，通过上次访问时间计算出当前桶中的令牌的数量，决定是否可以发放令牌。
+	//这样可以完全避免物理分配桶及令牌，占用内存空间。
 	if ok {
 		lim.last = now
 		lim.tokens = tokens

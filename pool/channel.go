@@ -25,19 +25,19 @@ type Config struct {
 	//关闭连接的方法
 	Close func(conn *Conn) error
 	//检查连接是否有效的方法
-	//Ping func(interface{}) error
+	Ping func(interface{}) error
 	//连接最大空闲时间，超过该事件则将失效
-	//IdleTimeout time.Duration
+	IdleTimeout time.Duration
 }
 
 
 
 // channelPool 存放连接信息
 type channelPool struct {
-	//mu                       sync.RWMutex
+	mu                       sync.RWMutex
 	conns                    chan *Conn
 	factory                  func() (*Conn, error)
-	//close                    func(conn *Conn) error
+	close                    func(conn *Conn) error
 	//ping                     func(interface{}) error
 	idleTimeout, waitTimeOut time.Duration
 	maxActive                int
@@ -70,7 +70,7 @@ func NewChannelPool(poolConfig *Config) (Pool, error) {
 	//if poolConfig.Ping != nil {
 	//	c.ping = poolConfig.Ping
 	//}
-
+	//根据初始化的容量，factory 创建多个连接，并通过channel 提交到协程池中
 	for i := 0; i < poolConfig.InitialCap; i++ {
 		conn, _ := c.factory()
 		//if err != nil {

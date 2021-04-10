@@ -84,6 +84,7 @@ type Element struct {
 }
 
 // 新建一个源
+
 func newElement(dtNow time.Time, call Call) *Element {
 	return &Element{creat: dtNow, caller: call, ch: make(chan struct{})}
 }
@@ -147,15 +148,15 @@ func NewElementBucket() *ElementBucket {
 
 // 加入窗口
 func (e *ElementBucket) add(call Call, w http.Request, r *http.ResponseWriter) {
-
+	//每来一个request请求，将请求时间，和请求体封装为一个请求体
 	elemet := newElement(time.Now(), call)
 
 	addFunc := func() int32 {
 		e.mutex.Lock()
 		defer e.mutex.Unlock()
 
-		e.ElementMap[elemet.creat.UnixNano()] = elemet
-		e.ElementSlice = append(e.ElementSlice, elemet)
+		e.ElementMap[elemet.creat.UnixNano()] = elemet//将请求体加入到Bucket窗口中的按照时间方便操作删除 map中
+		e.ElementSlice = append(e.ElementSlice, elemet)//将请求体加入到Bucket窗口中slice中
 		e.Length++
 		return e.Length
 	}
@@ -165,8 +166,8 @@ func (e *ElementBucket) add(call Call, w http.Request, r *http.ResponseWriter) {
 	// 甚至可以统计错误类型，根据不同错误类型来采取不同的策略
 	if err := elemet.Call(); err != nil {
 		if length := addFunc(); length >= int32(defaultConfig.DefaultCount) {
-			println(length)
-			e.sig <- struct{}{}
+			println("len:",length)
+			e.sig <- struct{}{} //降级移动窗口
 		}
 	}
 }
@@ -189,13 +190,13 @@ func (e *ElementBucket) moveWindow() {
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
 
-	// 模拟上传
-	fmt.Printf("聚合一次数据,总长度：%v", len(e.ElementSlice))
-
+	// 模拟上传，上报当前的流量计数。
+	fmt.Printf("聚合一次数据,总长度：%v\n", len(e.ElementSlice))
+	//看有多少个请求体。
 	if len(e.ElementSlice) >= defaultConfig.DefaultStep {//长度大于默认步长5
 		e.ElementSlice = e.ElementSlice[defaultConfig.DefaultStep:] //裁剪最新的步长
 	}
-
+	//两种方式，如果是错误信号的话。直接使用更换切片的方式，改变集合中的数据
 	// 更换底层地址
 	newSlice := make([]*Element, 0, len(e.ElementSlice))
 	newSlice = append(newSlice, e.ElementSlice...)
@@ -208,18 +209,20 @@ func (e *ElementBucket) moveTimeWindow(dtNow time.Time) {
 	defer e.mutex.Unlock()
 
 	// 模拟上传
-	fmt.Printf("聚合一次时间数据%v", len(e.ElementMap))
-
+	fmt.Printf("聚合一次时间数据%v\n", len(e.ElementMap))
+	//每隔一定时间 定时移动，时钟保证不停前进
 	currentTime := e.lastTime.Add(time.Duration(defaultConfig.DefaultSecond) * time.Second)
+	//上次更新时间加一段时间 得到当前时间
 	currentTimeUnix := currentTime.UnixNano()
-
+	//这就形成了窗口的移动
 	for k := range e.ElementMap {
+		//循环map窗口中的请求体,删除掉小于当前时间的请求体。保持时间区间内的记录，其他丢弃
 		if k <= currentTimeUnix {
 			delete(e.ElementMap, k)
 		}
 	}
 
-	e.lastTime = currentTime
+	e.lastTime = currentTime //然后把最后更新时间置为当前时间
 }
 
 func main() {
@@ -227,16 +230,17 @@ func main() {
 	// 设定随机数
 	rand.Seed(time.Now().UnixNano())
 
-	bucket := NewElementBucket()
+	bucket := NewElementBucket()//初始化窗口信息，上次修改时间等，初始化
 
 	var wg sync.WaitGroup
 
 	wg.Add(1)
 
-	go bucket.monitor()
+	go bucket.monitor()//启动一个协程监控窗口移动
 
 	for i := 0; i < 100; i++ {
 		go func() {
+			//模拟一百个请求，
 			bucket.add(request, http.Request{}, nil)
 		}()
 	}
